@@ -1,0 +1,21 @@
+PREC   =  Accurate
+ENCUT  =  600.0 eV 
+
+EDIFF  =  1.000000e-06  
+NELM   =  120    
+NELMIN =  4
+NPAR=4
+KPAR=1
+LREAL= Auto
+ISIF   =  2   
+IBRION =  -1
+ISMEAR =  0     
+SIGMA  =  0.05  
+
+NSW    =  -1
+LWAVE  =  F 
+LCHARG =  F    
+
+KSPACING=0.5
+KGAMMA=T
+
