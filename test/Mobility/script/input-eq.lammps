@@ -1,0 +1,72 @@
+# HfO2
+variable        NSTEPS          equal 70000
+variable        TEMP            equal 0.000000
+
+units           metal
+boundary        p p p
+atom_style      atomic
+
+neighbor        2.0 bin
+neigh_modify    every 10 delay 0 check no
+
+read_data	conf.lmp
+mass            1 178.490000
+mass            2 15.999400
+
+plugin load libdeepmd_lmp.so
+pair_style	deepmd  graph.pb 
+pair_coeff	*  *
+
+velocity        all create ${TEMP} 23456789
+timestep	 0.001
+thermo          100
+thermo_style    custom step pe ke etotal temp press vol cella cellb cellc cellalpha cellbeta cellgamma 
+
+ variable HfID_h equal 4000
+ variable O1ID_h equal ${HfID_h}*2
+ variable O2ID_h equal ${HfID_h}*3
+
+ variable HfID_l equal 1
+ variable O1ID_l equal ${HfID_h}+1
+ variable O2ID_l equal ${O1ID_h}+1
+
+ group Hfall id ${HfID_l}:${HfID_h}
+ group O1all id ${O1ID_l}:${O1ID_h}
+ group O2all id ${O2ID_l}:${O2ID_h}
+
+ region field block INF INF INF INF INF INF 
+ group fieldatoms region  field
+
+ group Hf intersect Hfall fieldatoms
+ group O1 intersect O1all fieldatoms
+ group O2 intersect O2all fieldatoms
+
+ variable VALUEX  equal 0
+ variable VALUEY  equal 0
+ variable VALUEZ  equal 0
+ 
+ variable Hffx equal 5.2*v_VALUEX
+ variable O1fx equal -2.6*v_VALUEX
+ variable O2fx equal -2.6*v_VALUEX
+
+ variable Hffy equal 5.2*v_VALUEY
+ variable O1fy equal -2.6*v_VALUEY
+ variable O2fy equal -2.6*v_VALUEY
+
+ variable Hffz equal 5.2*v_VALUEZ
+ variable O1fz equal -2.6*v_VALUEZ
+ variable O2fz equal -2.6*v_VALUEZ
+
+ fix             fHf  Hf addforce v_Hffx v_Hffy v_Hffz
+ fix             fO1  O1 addforce v_O1fx v_O1fy v_O1fz
+ fix             fO2  O2 addforce v_O2fx v_O2fy v_O2fz
+
+fix             1 all npt temp ${TEMP} ${TEMP} 0.1 aniso 1.0 1.0 0.5
+dump		2 all custom 50 all_dump.lammpstrj id type x y z 
+
+dump_modify 2 sort id
+
+run           ${NSTEPS} upto
+write_restart eq.restart
+write_data   data.HfO2*
+
