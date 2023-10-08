@@ -14,10 +14,10 @@ mass            1 178.490000
 mass            2 15.999400
 
 plugin load libdeepmd_lmp.so
-pair_style	deepmd  graph.pb 
+pair_style	deepmd  Hafnia_v1.pb
 pair_coeff	*  *
 
-timestep	 0.001
+timestep	0.001
 thermo          100
 thermo_style    custom step pe ke etotal temp press vol cella cellb cellc cellalpha cellbeta cellgamma 
 
@@ -62,7 +62,7 @@ thermo_style    custom step pe ke etotal temp press vol cella cellb cellc cellal
 
 fix 1 all npt temp ${TEMP} ${TEMP}  0.1 z 1.01325 1.01325 0.5
 fix 2 all recenter INIT INIT INIT
-dump		2 all custom 50 all_dump.lammpstrj id type x y z 
+dump		2 all custom 100 all_dump.lammpstrj id type x y z 
 
 dump_modify 2 sort id
 
