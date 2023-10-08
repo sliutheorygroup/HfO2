@@ -4,7 +4,7 @@
     "command": "lmp -i input.lammps > log",
     "log_file": "log",
     "backward_files": [],
-    "project_id": xxxx,
+    "project_id": "",
     "platform": "ali",
     "machine_type": "c12_m92_1 * NVIDIA V100",
     "image_address": "registry.dp.tech/dptech/deepmd-kit:2.1.5-cuda11.6"
