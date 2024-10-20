@@ -1,0 +1,108 @@
+# HfO2-efield
+
+units           metal
+boundary        p p p
+atom_style      atomic
+
+neighbor        2.0 bin
+neigh_modify    every 10 delay 0 check no
+
+box          tilt large
+#read_data conf.lmp
+read_restart E1.restart
+#change_box   all triclinic
+
+mass            1 178.490000
+mass            2 15.999400
+
+pair_style	deepmd model143.pb  
+pair_coeff * *	
+
+#velocity        all create 400.0 23456789
+timestep	 0.001
+thermo          100
+thermo_style    custom step pe ke etotal temp press vol cella cellb cellc cellalpha cellbeta cellgamma 
+
+ variable Hf1ID_h equal 36
+ variable Hf2ID_h equal 6948
+# variable O1ID_h equal ${HfID_h}*2-125
+# variable O2ID_h equal ${HfID_h}*3-250
+ variable OID_h equal 20772
+
+ variable Hf1ID_l equal 1
+ variable Hf2ID_l equal 37
+# variable O1ID_l equal ${HfID_h}+1
+# variable O2ID_l equal ${O1ID_h}+1
+ variable OID_l equal 6949
+
+ group Hf1all id ${Hf1ID_l}:${Hf1ID_h}
+ group Hf2all id ${Hf2ID_l}:${Hf2ID_h}
+# group O1all id ${O1ID_l}:${O1ID_h}
+# group O2all id ${O2ID_l}:${O2ID_h}
+ group Oall id ${OID_l}:${OID_h}
+
+# group Hf delete 
+# group O1 delete 
+# group O2 delete 
+# group fieldatoms delete
+
+ region field block INF INF INF INF INF INF 
+ group fieldatoms region  field
+
+ group Hf1 intersect Hf1all fieldatoms
+ group Hf2 intersect Hf2all fieldatoms
+# group O1 intersect O1all fieldatoms
+# group O2 intersect O2all fieldatoms
+ group O intersect Oall fieldatoms
+
+ variable VALUEX  equal 0 
+ variable VALUEY  equal 0
+ variable VALUEZ  equal 0.031
+ 
+ variable Hf1fx equal -1.9*v_VALUEX
+ variable Hf2fx equal 5.2*v_VALUEX
+# variable O1fx equal -2.6*v_VALUEX
+# variable O2fx equal -2.6*v_VALUEX
+ variable Ofx equal -2.596*v_VALUEX
+
+ variable Hf1fy equal -1.9*v_VALUEY
+ variable Hf2fy equal 5.2*v_VALUEY
+# variable O1fy equal -2.6*v_VALUEY
+# variable O2fy equal -2.6*v_VALUEY
+ variable Ofy equal -2.596*v_VALUEY
+
+ variable Hf1fz equal -1.9*v_VALUEZ
+ variable Hf2fz equal 5.2*v_VALUEZ
+ variable Ofz equal -2.596*v_VALUEZ
+# variable O2fz equal -2.6*v_VALUEZ
+
+ fix             fHf1  Hf1 addforce v_Hf1fx v_Hf1fy v_Hf1fz
+ fix             fHf2  Hf2 addforce v_Hf2fx v_Hf2fy v_Hf2fz
+# fix             fO1  O1 addforce v_O1fx v_O1fy v_O1fz
+# fix             fO2  O2 addforce v_O2fx v_O2fy v_O2fz
+ fix             fO  O addforce v_Ofx v_Ofy v_Ofz
+
+
+#fix 1 all npt temp 500 500 0.1 z 1.01325 1.01325 1.0
+fix             1 all npt temp 400 400 0.5 z 1.01325 1.01325 0.6
+#fix             1 all nvt temp 1600 1600 0.5 
+fix 2 all recenter INIT INIT INIT
+dump		2 all custom 20 all_dump.lammpstrj id type x y z 
+
+#fix aveS all ave/atom  10 100 1000 x y z
+#dump 4 all custom 1000 avgstr.dump id element x y z 
+#dump_modify 4 sort 1 element Hf O
+dump_modify 2 sort id
+
+
+group           O2-MSD      type   2  
+
+compute      1  O2-MSD     msd  
+
+fix          3  O2-MSD     ave/time 1 1 20  c_1[1] c_1[2] c_1[3] c_1[4] file HfO2-npt.MSD # mode vector [1]msdx [2]msdy [3]msdz [4]msd
+
+run           20000
+#restart 100000 restart.equil
+
+write_restart E2.restart
+write_data   data.HfO2*
